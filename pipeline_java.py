@@ -165,7 +165,7 @@ def new_names(foldername):
     foldername_new = re.sub('_+', '_', foldername_new)
     return foldername_new
   
-def perform_analysis(path,name,login_sonar):
+def perform_analysis(path,name,login_sonar,sonar_api):
     os.chdir(path)
                         
     outfile = cwd + "/output/apps/"+str(name)+".txt"
@@ -179,8 +179,7 @@ def perform_analysis(path,name,login_sonar):
     
     #delete project if exists
     print("Delete project from SonarQube")
-    execute_cmd = 'curl -s -u {u} -X POST "http://host.docker.internal:9000/api/projects/delete?project={n}"'
-        .format(u=login_sonar,n=name)
+    execute_cmd = 'curl -s -u {u} -X POST "http://host.docker.internal:9000/api/projects/delete?project={n}"'.format(u=login_sonar,n=name)
     with open(outfile, 'a') as f_out:
         p = subprocess.Popen(execute_cmd, shell=True, stdout=f_out, stderr=subprocess.STDOUT)
     (output, err) = p.communicate()  
@@ -196,7 +195,7 @@ def perform_analysis(path,name,login_sonar):
     
     #perform analysis
     print("Analysis with SonarQube")
-    execute_cmd = 'gradle sonarqube -D "sonar.projectKey={}" -D "sonar.host.url=http://host.docker.internal:9000" -D "sonar.login=865d114debfa5078f0654e64a2d9ffeacb4aa1b8"'.format(name)
+    execute_cmd = 'gradle sonarqube -D "sonar.projectKey={}" -D "sonar.host.url=http://host.docker.internal:9000" -D "sonar.login={}"'.format(name,sonar_api)
     with open(outfile, 'a') as f_out:
         p = subprocess.Popen(execute_cmd, shell=True, stdout=f_out, stderr=subprocess.STDOUT)
     (output, err) = p.communicate()  
@@ -220,7 +219,7 @@ if __name__ == '__main__':
     total_count = 0
 
     login_sonar = 'LOGIN:PASSWORD'
-
+    sonar_api = 'API Sonar'
     directory = "/home/data/source_unzipped"
     path = directory + "/*"
     
@@ -269,8 +268,7 @@ if __name__ == '__main__':
                             
                         result = re.search('Welcome to Gradle (.*).', string_from_file)
                         if result:
-                            gradle_version = 'https\://services.gradle.org/distributions/gradle-{}-all.zip'.
-                                format(result.group(1))
+                            gradle_version = 'https\://services.gradle.org/distributions/gradle-{}-all.zip'.format(result.group(1))
                         
                         if not string_from_file:
                             matched_lines = search_string_in_file(outfile, 'Gradle version ')
@@ -280,8 +278,7 @@ if __name__ == '__main__':
                             
                             result = re.search('Gradle version (.*) is required', string_from_file)
                             if result:
-                                gradle_version = 'https\://services.gradle.org/distributions/
-                                    gradle-{}-all.zip'.                                    format(result.group(1))
+                                gradle_version = 'https\://services.gradle.org/distributions/gradle-{}-all.zip'.format(result.group(1))
 
                     if gradle_version:
                         # check if gradle version exists, if not download and extract
@@ -296,7 +293,7 @@ if __name__ == '__main__':
                                 change_path = source_path+'/'+folders[0]
                                 
                                 #perform analysis
-                                perform_analysis(change_path,name,login_sonar) 
+                                perform_analysis(change_path,name,login_sonar,sonar_api) 
                             
                                 #location output file
                                 outfile = cwd + "/output/apps/"+str(name)+".txt"
