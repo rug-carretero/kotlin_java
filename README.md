@@ -10,3 +10,6 @@ Folder Results<br />
 
 Folder SonarQube<br />
 - scripts for extracting code smells using SonarQube
+
+Folder SonarQube docker<br />
+- Docker image for installing SonarQube
